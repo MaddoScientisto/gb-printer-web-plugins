@@ -13,6 +13,7 @@ const gbpWebPlugins = {
   toSav: path.join(process.cwd(), 'src', 'javascript', 'to-sav', 'index.js'),
   average: path.join(process.cwd(), 'src', 'javascript', 'average', 'index.js'),
   gcode: path.join(process.cwd(), 'src', 'javascript', 'gcode', 'index.js'),
+  rgbandaverage: path.join(process.cwd(), 'src', 'javascript', 'rgbandaverage', 'index.js'),
 };
 
 module.exports = () => ({
