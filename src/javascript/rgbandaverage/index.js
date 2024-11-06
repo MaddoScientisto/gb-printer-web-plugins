@@ -147,71 +147,56 @@ class DummyPlugin {
 
       const rgbMergedImages = [];
 
-      // Process each RGB set
       for (let set = 0; set < numGroups / 3; set++) {
-        // Initialize canvases to hold the merged images
+        const group = [];
+
+        // For each image in the group
         for (let i = 0; i < groupSize; i++) {
           const width = canvases[0].width;
           const height = canvases[0].height;
 
-          // Create a canvas for each merged image in the set
+          // Create a new canvas for each image in the group
           const outputCanvas = document.createElement('canvas');
           outputCanvas.width = width;
           outputCanvas.height = height;
           const outputCtx = outputCanvas.getContext('2d');
           const outputImageData = outputCtx.createImageData(width, height);
 
-          // Loop through each pixel and average RGB values from each group
+          // Retrieve the R, G, and B images from the current group
+          const redImage = canvases[set * 3 * groupSize + i];
+          const greenImage = canvases[set * 3 * groupSize + groupSize + i];
+          const blueImage = canvases[set * 3 * groupSize + (2 * groupSize) + i];
+
+          const redCtx = redImage.getContext('2d').getImageData(0, 0, width, height);
+          const greenCtx = greenImage.getContext('2d').getImageData(0, 0, width, height);
+          const blueCtx = blueImage.getContext('2d').getImageData(0, 0, width, height);
+
+          // Copy the RGB data to the output image without averaging
           for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
               const index = (y * width + x) * 4;
 
-              // Initialize the RGB channels
-              let redSum = 0;
-              let greenSum = 0;
-              let blueSum = 0;
-
-              // Add the R, G, and B channels from the respective images
-              const redImage = canvases[set * 3 * groupSize + i];
-              const greenImage = canvases[set * 3 * groupSize + groupSize + i];
-              const blueImage =
-                canvases[set * 3 * groupSize + 2 * groupSize + i];
-
-              const redCtx = redImage
-                .getContext('2d')
-                .getImageData(0, 0, width, height, {
-                  willReadFrequently: true,
-                });
-              const greenCtx = greenImage
-                .getContext('2d')
-                .getImageData(0, 0, width, height, {
-                  willReadFrequently: true,
-                });
-              const blueCtx = blueImage
-                .getContext('2d')
-                .getImageData(0, 0, width, height, {
-                  willReadFrequently: true,
-                });
-
-              // Sum up each color channel for the pixel
-              redSum += redCtx.data[index];
-              greenSum += greenCtx.data[index + 1];
-              blueSum += blueCtx.data[index + 2];
-
-              // Set the averaged color to the output
-              outputImageData.data[index] = redSum / 1; // Red
-              outputImageData.data[index + 1] = greenSum / 1; // Green
-              outputImageData.data[index + 2] = blueSum / 1; // Blue
+              // Assign RGB values from respective channels without averaging
+              outputImageData.data[index] = redCtx.data[index]; // Red channel
+              outputImageData.data[index + 1] = greenCtx.data[index + 1]; // Green channel
+              outputImageData.data[index + 2] = blueCtx.data[index + 2]; // Blue channel
               outputImageData.data[index + 3] = 255; // Full opacity
             }
           }
 
+          // Draw the modified image data to the output canvas
           outputCtx.putImageData(outputImageData, 0, 0);
-          rgbMergedImages.push(outputCanvas);
+          group.push(outputCanvas);
         }
+
+        rgbMergedImages.push(...group);
       }
 
-      return rgbMergedImages;
+      return {
+        canvases: rgbMergedImages,
+        groupSize,
+        numGroups,
+      };
     }
 
     Promise.all(
@@ -225,7 +210,7 @@ class DummyPlugin {
 
         return rgbMergedImages;
       })
-      .then((canvases) => {
+      .then(({ canvases, groupSize, numGroups }) => {
         const scaleFactor = this.config.scaleFactor || 4;
 
         canvases.forEach((canvas, index) => {
