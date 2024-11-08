@@ -101,13 +101,39 @@ class DummyPlugin {
     lightboxBoxDenyButton.classList.add('buttons__button');
     lightboxBoxDenyButton.textContent = 'Cancel';
 
+    const createNumberInput = (value, inputId, labelText, placeholder) => {
+
+      const container = document.createElement('div');
+      container.classList.add('inputgroup', 'inputgroup--number');
+
+      const label = document.createElement('label');
+      label.classList.add('inputgroup__label');
+      label.appendChild(document.createTextNode(labelText));
+      label.setAttribute('for', inputId);
+
+      const input = document.createElement('input');
+      input.id = inputId;
+      input.type = 'number';
+      input.value = value;
+      input.classList.add('inputgroup__input');
+      input.placeholder = placeholder;
+      input.setAttribute('autocomplete', 'off');
+      input.setAttribute('autocorrect', 'off');
+      input.setAttribute('autocapitalize', 'off');
+      input.setAttribute('spellcheck', 'false');
+
+      container.appendChild(label);
+      container.appendChild(input);
+
+      lightboxBoxContent.appendChild(container);
+
+      return input;
+    };
+
     // AEB Value selector
-    const aebStepInput = document.createElement('input');
-    aebStepInput.type = 'number';
-    aebStepInput.value = this.config.aebStep;
-    aebStepInput.classList.add('aeb-step-input');
-    aebStepInput.placeholder = 'AEB Step';
-    lightboxBoxContent.appendChild(aebStepInput);
+    const aebStepInput = createNumberInput(this.config.aebStep, 'rgbav_aebstep', 'The AEB step setting that was used to shoot the pictures', 'AEB Step');
+
+    const imageExportSizeInput = createNumberInput(this.config.scaleFactor, 'rgbav_scale', 'Image export dimension factor (1x, 2x, ...)', 'Scale Size');
 
     lightboxBoxContent.style.height = '430px';
     lightboxBoxContent.style.padding = '20px';
@@ -245,7 +271,7 @@ class DummyPlugin {
     const createRotateButton = (canvas, label, angle) => {
       const rotateButton = document.createElement('button');
       rotateButton.textContent = label;
-      rotateButton.classList.add('buttons__button');
+      rotateButton.classList.add('buttons__button', 'buttons__button--deny');
 
       rotateButton.addEventListener('click', () => {
         const tempCanvas = document.createElement('canvas');
@@ -283,7 +309,7 @@ class DummyPlugin {
 
     // Display averaged groups
     const displayGroups = (groupResults) => {
-      const scaleFactor = this.config.scaleFactor || 4;
+      const scaleFactor = imageExportSizeInput.value || 4;
 
       groupResults.forEach((groupCanvas, index) => {
         const container = document.createElement('div');
@@ -330,7 +356,7 @@ class DummyPlugin {
         return rgbMergedImages;
       })
       .then(({ canvases, groupSize, numGroups }) => {
-        const scaleFactor = this.config.scaleFactor || 4;
+        const scaleFactor = imageExportSizeInput.value || 4;
 
         const groupResults = [];
 
